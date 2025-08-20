@@ -3,9 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle, XCircle, Flag, MessageSquare } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CheckCircle, XCircle, Flag, MessageSquare, FileText, Shield, AlertTriangle } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
+import { ComplianceChecks } from "./ComplianceChecks";
+import { DeviationManagement } from "./DeviationManagement";
 
 interface ApplicationDetailModalProps {
   isOpen: boolean;
@@ -80,120 +83,153 @@ export const ApplicationDetailModal = ({ isOpen, onClose, applicationId }: Appli
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Basic Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Business Legal Name</label>
-                <p className="text-foreground">{application.businessName}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Trading Name</label>
-                <p className="text-foreground">{application.tradingName}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Registration Number</label>
-                <p className="text-foreground">{application.registrationNumber}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Date of Incorporation</label>
-                <p className="text-foreground">{application.incorporationDate}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Nature of Business</label>
-                <p className="text-foreground">{application.natureOfBusiness}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Number of Employees</label>
-                <p className="text-foreground">{application.numberOfEmployees}</p>
-              </div>
-              <div className="col-span-2">
-                <label className="text-sm font-medium text-muted-foreground">Expected Monthly Turnover</label>
-                <p className="text-foreground font-semibold">{application.monthlyTurnover}</p>
-              </div>
-            </CardContent>
-          </Card>
+          <Tabs defaultValue="application" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="application" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Application
+              </TabsTrigger>
+              <TabsTrigger value="compliance" className="flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                Compliance
+              </TabsTrigger>
+              <TabsTrigger value="deviations" className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4" />
+                Deviations
+              </TabsTrigger>
+              <TabsTrigger value="review" className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Review
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Address Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Business Addresses</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Physical Address</label>
-                <p className="text-foreground">
-                  {application.physicalAddress.line1}<br />
-                  {application.physicalAddress.line2}<br />
-                  {application.physicalAddress.city} {application.physicalAddress.postalCode}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Postal Address</label>
-                <p className="text-foreground">{application.postalAddress}</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Contact Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Contact Information</CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Contact Person</label>
-                <p className="text-foreground">{application.contactPerson}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Phone Number</label>
-                <p className="text-foreground">{application.phoneNumber}</p>
-              </div>
-              <div className="col-span-2">
-                <label className="text-sm font-medium text-muted-foreground">Email Address</label>
-                <p className="text-foreground">{application.email}</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Documents */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Submitted Documents</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-2">
-                {application.documents.map((doc, index) => (
-                  <div key={index} className="flex items-center gap-2 p-2 border border-border rounded">
-                    <CheckCircle className="h-4 w-4 text-success" />
-                    <span className="text-sm">{doc}</span>
+            <TabsContent value="application" className="space-y-6 mt-6">
+              {/* Basic Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Basic Information</CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Business Legal Name</label>
+                    <p className="text-foreground">{application.businessName}</p>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Trading Name</label>
+                    <p className="text-foreground">{application.tradingName}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Registration Number</label>
+                    <p className="text-foreground">{application.registrationNumber}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Date of Incorporation</label>
+                    <p className="text-foreground">{application.incorporationDate}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Nature of Business</label>
+                    <p className="text-foreground">{application.natureOfBusiness}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Number of Employees</label>
+                    <p className="text-foreground">{application.numberOfEmployees}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="text-sm font-medium text-muted-foreground">Expected Monthly Turnover</label>
+                    <p className="text-foreground font-semibold">{application.monthlyTurnover}</p>
+                  </div>
+                </CardContent>
+              </Card>
 
-          {/* Review Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Compliance Review</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Review Comments</label>
-                <Textarea
-                  placeholder="Enter your review comments and compliance notes..."
-                  value={reviewComments}
-                  onChange={(e) => setReviewComments(e.target.value)}
-                  className="mt-2"
-                  rows={4}
-                />
-              </div>
-            </CardContent>
-          </Card>
+              {/* Address Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Business Addresses</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Physical Address</label>
+                    <p className="text-foreground">
+                      {application.physicalAddress.line1}<br />
+                      {application.physicalAddress.line2}<br />
+                      {application.physicalAddress.city} {application.physicalAddress.postalCode}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Postal Address</label>
+                    <p className="text-foreground">{application.postalAddress}</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Contact Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Contact Information</CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Contact Person</label>
+                    <p className="text-foreground">{application.contactPerson}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Phone Number</label>
+                    <p className="text-foreground">{application.phoneNumber}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="text-sm font-medium text-muted-foreground">Email Address</label>
+                    <p className="text-foreground">{application.email}</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Documents */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Submitted Documents</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-2">
+                    {application.documents.map((doc, index) => (
+                      <div key={index} className="flex items-center gap-2 p-2 border border-border rounded">
+                        <CheckCircle className="h-4 w-4 text-success" />
+                        <span className="text-sm">{doc}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="compliance" className="mt-6">
+              <ComplianceChecks />
+            </TabsContent>
+
+            <TabsContent value="deviations" className="mt-6">
+              <DeviationManagement />
+            </TabsContent>
+
+            <TabsContent value="review" className="space-y-6 mt-6">
+              {/* Review Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Compliance Review</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Review Comments</label>
+                    <Textarea
+                      placeholder="Enter your review comments and compliance notes..."
+                      value={reviewComments}
+                      onChange={(e) => setReviewComments(e.target.value)}
+                      className="mt-2"
+                      rows={4}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
 
         <Separator />
