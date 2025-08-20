@@ -9,6 +9,7 @@ interface ComplianceCheck {
     status: "passed" | "failed" | "pending" | "warning";
     details?: string;
     lastChecked: string;
+    flags: string[];
   }[];
 }
 
@@ -20,32 +21,37 @@ export const ComplianceChecks = () => {
         {
           name: "Identity Verification",
           status: "passed",
-          details: "National ID verified against IPRS database",
-          lastChecked: "2024-01-15 10:30"
+          details: "National ID 34567890 verified against IPRS database. Document authentic.",
+          lastChecked: "2024-01-15 10:30",
+          flags: []
         },
         {
           name: "Address Verification",
-          status: "passed",
-          details: "Utility bill matches provided address",
-          lastChecked: "2024-01-15 10:32"
+          status: "warning",
+          details: "Utility bill address partially matches. Minor discrepancy in street name.",
+          lastChecked: "2024-01-15 10:32",
+          flags: ["Address format inconsistency", "Missing apartment number in utility bill"]
         },
         {
           name: "Business Registration Verification",
           status: "passed",
-          details: "Certificate verified with Registrar of Companies",
-          lastChecked: "2024-01-15 10:35"
+          details: "Certificate PVT-202301456 verified with Registrar of Companies. Status: Active",
+          lastChecked: "2024-01-15 10:35",
+          flags: []
         },
         {
           name: "Tax Compliance Check",
-          status: "warning",
-          details: "KRA PIN valid but recent tax returns pending review",
-          lastChecked: "2024-01-15 10:40"
+          status: "failed",
+          details: "KRA PIN A012345678Z valid but missing recent tax returns for 2023",
+          lastChecked: "2024-01-15 10:40",
+          flags: ["2023 tax returns not submitted", "Outstanding VAT payment of KES 45,000", "ITax portal shows compliance rating: Medium Risk"]
         },
         {
           name: "Financial Statement Analysis",
-          status: "passed",
-          details: "Audited statements show stable financial position",
-          lastChecked: "2024-01-15 10:45"
+          status: "warning",
+          details: "Audited statements show declining revenue trend. Cash flow concerns noted.",
+          lastChecked: "2024-01-15 10:45",
+          flags: ["Revenue declined 15% YoY", "Current ratio below industry standard (1.2 vs 1.8)", "Auditor qualified opinion on going concern"]
         }
       ]
     },
@@ -55,26 +61,30 @@ export const ComplianceChecks = () => {
         {
           name: "Sanctions List Screening",
           status: "passed",
-          details: "No matches found in international sanctions lists",
-          lastChecked: "2024-01-15 11:00"
+          details: "Screened against OFAC, UN, EU sanctions lists. No matches found.",
+          lastChecked: "2024-01-15 11:00",
+          flags: []
         },
         {
           name: "Watchlist Screening",
-          status: "passed",
-          details: "No matches in global watchlists",
-          lastChecked: "2024-01-15 11:02"
+          status: "warning",
+          details: "Potential match found requiring manual review",
+          lastChecked: "2024-01-15 11:02",
+          flags: ["Similar name found in PEP database", "Requires manual verification of identity"]
         },
         {
           name: "Adverse Media Screening",
-          status: "passed",
-          details: "No negative media coverage identified",
-          lastChecked: "2024-01-15 11:05"
+          status: "failed",
+          details: "Negative media coverage identified in business publications",
+          lastChecked: "2024-01-15 11:05",
+          flags: ["Article about tax evasion allegations (2023)", "Court case pending - contract dispute", "Mentioned in fraud investigation report"]
         },
         {
           name: "Transaction Pattern Analysis",
           status: "pending",
-          details: "Awaiting historical transaction data",
-          lastChecked: "2024-01-15 11:10"
+          details: "Awaiting historical transaction data from previous bank",
+          lastChecked: "2024-01-15 11:10",
+          flags: ["Previous bank has not responded to information request", "Manual follow-up required"]
         }
       ]
     },
@@ -83,21 +93,24 @@ export const ComplianceChecks = () => {
       checks: [
         {
           name: "Political Exposure Check",
-          status: "passed",
-          details: "No political exposure identified",
-          lastChecked: "2024-01-15 11:15"
+          status: "warning",
+          details: "Contact person previously worked in government ministry",
+          lastChecked: "2024-01-15 11:15",
+          flags: ["Former Ministry of ICT employee (2018-2020)", "Low-level position, minimal risk exposure"]
         },
         {
           name: "Family/Associate PEP Check",
           status: "passed",
-          details: "No known associations with PEPs",
-          lastChecked: "2024-01-15 11:17"
+          details: "No known direct family associations with PEPs identified",
+          lastChecked: "2024-01-15 11:17",
+          flags: []
         },
         {
           name: "Enhanced Due Diligence",
-          status: "passed",
-          details: "Standard risk profile - no EDD required",
-          lastChecked: "2024-01-15 11:20"
+          status: "pending",
+          details: "EDD required due to previous government employment",
+          lastChecked: "2024-01-15 11:20",
+          flags: ["Additional documentation required", "Source of wealth verification needed", "Enhanced monitoring recommended"]
         }
       ]
     },
@@ -107,20 +120,23 @@ export const ComplianceChecks = () => {
         {
           name: "CBK Licensing Check",
           status: "passed",
-          details: "Business activity within permitted scope",
-          lastChecked: "2024-01-15 11:25"
+          details: "Business activity within permitted scope for current account services",
+          lastChecked: "2024-01-15 11:25",
+          flags: []
         },
         {
           name: "Industry Risk Assessment",
-          status: "passed",
-          details: "Technology services - Low risk industry",
-          lastChecked: "2024-01-15 11:30"
+          status: "warning",
+          details: "Technology services - Medium risk due to crypto exposure",
+          lastChecked: "2024-01-15 11:30",
+          flags: ["Client mentions blockchain consulting", "Potential cryptocurrency transaction risk", "Enhanced monitoring recommended"]
         },
         {
           name: "Geographic Risk Assessment",
           status: "passed",
-          details: "Operating in low-risk jurisdiction",
-          lastChecked: "2024-01-15 11:32"
+          details: "Operating in Nairobi - low risk jurisdiction within Kenya",
+          lastChecked: "2024-01-15 11:32",
+          flags: []
         }
       ]
     }
@@ -195,6 +211,17 @@ export const ComplianceChecks = () => {
                       <h4 className="font-medium text-foreground">{check.name}</h4>
                       {check.details && (
                         <p className="text-sm text-muted-foreground mt-1">{check.details}</p>
+                      )}
+                      {check.flags.length > 0 && (
+                        <div className="mt-2 space-y-1">
+                          <p className="text-xs font-medium text-warning">Flags:</p>
+                          {check.flags.map((flag, flagIndex) => (
+                            <div key={flagIndex} className="flex items-start gap-2">
+                              <AlertTriangle className="h-3 w-3 text-warning mt-0.5 flex-shrink-0" />
+                              <p className="text-xs text-warning">{flag}</p>
+                            </div>
+                          ))}
+                        </div>
                       )}
                       <p className="text-xs text-muted-foreground mt-1">
                         Last checked: {check.lastChecked}

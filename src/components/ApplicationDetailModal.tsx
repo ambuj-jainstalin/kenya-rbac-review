@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckCircle, XCircle, Flag, MessageSquare, FileText, Shield, AlertTriangle } from "lucide-react";
+import { CheckCircle, XCircle, Flag, MessageSquare, FileText, Shield, AlertTriangle, Download } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { ComplianceChecks } from "./ComplianceChecks";
@@ -189,11 +189,25 @@ export const ApplicationDetailModal = ({ isOpen, onClose, applicationId }: Appli
                   <CardTitle>Submitted Documents</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-2">
                     {application.documents.map((doc, index) => (
-                      <div key={index} className="flex items-center gap-2 p-2 border border-border rounded">
-                        <CheckCircle className="h-4 w-4 text-success" />
-                        <span className="text-sm">{doc}</span>
+                      <div key={index} className="flex items-center justify-between p-3 border border-border rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="h-4 w-4 text-success" />
+                          <span className="text-sm font-medium">{doc}</span>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            console.log(`Downloading ${doc}`);
+                            // In a real app, this would trigger file download
+                          }}
+                          className="h-8 px-3"
+                        >
+                          <Download className="h-3 w-3 mr-1" />
+                          Download
+                        </Button>
                       </div>
                     ))}
                   </div>
