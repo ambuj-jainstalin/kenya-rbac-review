@@ -13,45 +13,112 @@ interface ComplianceCheck {
   }[];
 }
 
-export const ComplianceChecks = () => {
+interface ComplianceChecksProps {
+  applicationId?: string;
+}
+
+// Helper function to generate consistent random data based on application ID
+const generateSeededRandom = (seed: string) => {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    const char = seed.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  return Math.abs(hash);
+};
+
+const getRandomStatus = (seed: number, weights: { passed: number; failed: number; warning: number; pending: number }) => {
+  const random = (seed * 9301 + 49297) % 233280;
+  const normalized = random / 233280;
+  
+  if (normalized < weights.passed) return "passed";
+  if (normalized < weights.passed + weights.failed) return "failed";
+  if (normalized < weights.passed + weights.failed + weights.warning) return "warning";
+  return "pending";
+};
+
+const getRandomFlags = (seed: number, status: string) => {
+  const flagOptions = {
+    kyc: [
+      "Address format inconsistency",
+      "Missing apartment number in utility bill",
+      "ID document expired",
+      "Name mismatch on documents",
+      "Incomplete business registration",
+      "Missing tax compliance certificate"
+    ],
+    aml: [
+      "Similar name found in PEP database",
+      "Requires manual verification of identity",
+      "Previous bank has not responded to information request",
+      "Manual follow-up required",
+      "Suspicious transaction patterns detected",
+      "High-risk jurisdiction exposure"
+    ],
+    pep: [
+      "Former Ministry of ICT employee (2018-2020)",
+      "Low-level position, minimal risk exposure",
+      "Additional documentation required",
+      "Source of wealth verification needed",
+      "Enhanced monitoring recommended",
+      "Family member in government position"
+    ],
+    regulatory: [
+      "Client mentions blockchain consulting",
+      "Potential cryptocurrency transaction risk",
+      "Enhanced monitoring recommended",
+      "Industry-specific compliance concerns",
+      "Geographic risk factors identified",
+      "Regulatory reporting requirements"
+    ]
+  };
+
+  const random = (seed * 9301 + 49297) % 233280;
+  const normalized = random / 233280;
+  
+  if (status === "passed") return [];
+  
+  const category = Object.keys(flagOptions)[Math.floor(normalized * 4)];
+  const numFlags = Math.floor(normalized * 3) + 1;
+  const shuffled = [...flagOptions[category as keyof typeof flagOptions]].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, numFlags);
+};
+
+const generateComplianceData = (applicationId: string): ComplianceCheck[] => {
+  const baseSeed = generateSeededRandom(applicationId);
+  
   const complianceData: ComplianceCheck[] = [
     {
       category: "KYC Verification",
       checks: [
         {
           name: "Identity Verification",
-          status: "passed",
-          details: "National ID 34567890 verified against IPRS database. Document authentic.",
+          status: getRandomStatus(baseSeed + 1, { passed: 0.7, failed: 0.1, warning: 0.15, pending: 0.05 }),
+          details: "National ID verification against IPRS database. Document authentic.",
           lastChecked: "2024-01-15 10:30",
-          flags: []
+          flags: getRandomFlags(baseSeed + 1, getRandomStatus(baseSeed + 1, { passed: 0.7, failed: 0.1, warning: 0.15, pending: 0.05 }))
         },
         {
           name: "Address Verification",
-          status: "warning",
-          details: "Utility bill address partially matches. Minor discrepancy in street name.",
+          status: getRandomStatus(baseSeed + 2, { passed: 0.6, failed: 0.1, warning: 0.25, pending: 0.05 }),
+          details: "Utility bill address verification completed.",
           lastChecked: "2024-01-15 10:32",
-          flags: ["Address format inconsistency", "Missing apartment number in utility bill"]
+          flags: getRandomFlags(baseSeed + 2, getRandomStatus(baseSeed + 2, { passed: 0.6, failed: 0.1, warning: 0.25, pending: 0.05 }))
         },
         {
           name: "Business Registration Verification",
-          status: "passed",
-          details: "Certificate PVT-202301456 verified with Registrar of Companies. Status: Active",
+          status: getRandomStatus(baseSeed + 3, { passed: 0.8, failed: 0.05, warning: 0.1, pending: 0.05 }),
+          details: "Certificate verification with Registrar of Companies.",
           lastChecked: "2024-01-15 10:35",
-          flags: []
+          flags: getRandomFlags(baseSeed + 3, getRandomStatus(baseSeed + 3, { passed: 0.8, failed: 0.05, warning: 0.1, pending: 0.05 }))
         },
         {
           name: "Tax Compliance Check",
-          status: "failed",
-          details: "KRA PIN A012345678Z valid but missing recent tax returns for 2023",
+          status: getRandomStatus(baseSeed + 4, { passed: 0.5, failed: 0.2, warning: 0.25, pending: 0.05 }),
+          details: "KRA PIN verification and tax compliance assessment.",
           lastChecked: "2024-01-15 10:40",
-          flags: ["2023 tax returns not submitted", "Outstanding VAT payment of KES 45,000", "ITax portal shows compliance rating: Medium Risk"]
-        },
-        {
-          name: "Financial Statement Analysis",
-          status: "warning",
-          details: "Audited statements show declining revenue trend. Cash flow concerns noted.",
-          lastChecked: "2024-01-15 10:45",
-          flags: ["Revenue declined 15% YoY", "Current ratio below industry standard (1.2 vs 1.8)", "Auditor qualified opinion on going concern"]
+          flags: getRandomFlags(baseSeed + 4, getRandomStatus(baseSeed + 4, { passed: 0.5, failed: 0.2, warning: 0.25, pending: 0.05 }))
         }
       ]
     },
@@ -60,31 +127,24 @@ export const ComplianceChecks = () => {
       checks: [
         {
           name: "Sanctions List Screening",
-          status: "passed",
-          details: "Screened against OFAC, UN, EU sanctions lists. No matches found.",
+          status: getRandomStatus(baseSeed + 5, { passed: 0.9, failed: 0.05, warning: 0.03, pending: 0.02 }),
+          details: "Screened against OFAC, UN, EU sanctions lists.",
           lastChecked: "2024-01-15 11:00",
-          flags: []
+          flags: getRandomFlags(baseSeed + 5, getRandomStatus(baseSeed + 5, { passed: 0.9, failed: 0.05, warning: 0.03, pending: 0.02 }))
         },
         {
           name: "Watchlist Screening",
-          status: "warning",
-          details: "Potential match found requiring manual review",
+          status: getRandomStatus(baseSeed + 6, { passed: 0.7, failed: 0.1, warning: 0.15, pending: 0.05 }),
+          details: "PEP and watchlist database screening completed.",
           lastChecked: "2024-01-15 11:02",
-          flags: ["Similar name found in PEP database", "Requires manual verification of identity"]
-        },
-        {
-          name: "Adverse Media Screening",
-          status: "failed",
-          details: "Negative media coverage identified in business publications",
-          lastChecked: "2024-01-15 11:05",
-          flags: ["Article about tax evasion allegations (2023)", "Court case pending - contract dispute", "Mentioned in fraud investigation report"]
+          flags: getRandomFlags(baseSeed + 6, getRandomStatus(baseSeed + 6, { passed: 0.7, failed: 0.1, warning: 0.15, pending: 0.05 }))
         },
         {
           name: "Transaction Pattern Analysis",
-          status: "pending",
-          details: "Awaiting historical transaction data from previous bank",
+          status: getRandomStatus(baseSeed + 7, { passed: 0.4, failed: 0.1, warning: 0.3, pending: 0.2 }),
+          details: "Historical transaction pattern analysis.",
           lastChecked: "2024-01-15 11:10",
-          flags: ["Previous bank has not responded to information request", "Manual follow-up required"]
+          flags: getRandomFlags(baseSeed + 7, getRandomStatus(baseSeed + 7, { passed: 0.4, failed: 0.1, warning: 0.3, pending: 0.2 }))
         }
       ]
     },
@@ -93,24 +153,24 @@ export const ComplianceChecks = () => {
       checks: [
         {
           name: "Political Exposure Check",
-          status: "warning",
-          details: "Contact person previously worked in government ministry",
+          status: getRandomStatus(baseSeed + 8, { passed: 0.8, failed: 0.05, warning: 0.1, pending: 0.05 }),
+          details: "Political exposure screening completed.",
           lastChecked: "2024-01-15 11:15",
-          flags: ["Former Ministry of ICT employee (2018-2020)", "Low-level position, minimal risk exposure"]
+          flags: getRandomFlags(baseSeed + 8, getRandomStatus(baseSeed + 8, { passed: 0.8, failed: 0.05, warning: 0.1, pending: 0.05 }))
         },
         {
           name: "Family/Associate PEP Check",
-          status: "passed",
-          details: "No known direct family associations with PEPs identified",
+          status: getRandomStatus(baseSeed + 9, { passed: 0.85, failed: 0.05, warning: 0.08, pending: 0.02 }),
+          details: "Family and associate PEP screening completed.",
           lastChecked: "2024-01-15 11:17",
-          flags: []
+          flags: getRandomFlags(baseSeed + 9, getRandomStatus(baseSeed + 9, { passed: 0.85, failed: 0.05, warning: 0.08, pending: 0.02 }))
         },
         {
           name: "Enhanced Due Diligence",
-          status: "pending",
-          details: "EDD required due to previous government employment",
+          status: getRandomStatus(baseSeed + 10, { passed: 0.3, failed: 0.1, warning: 0.4, pending: 0.2 }),
+          details: "Enhanced due diligence assessment.",
           lastChecked: "2024-01-15 11:20",
-          flags: ["Additional documentation required", "Source of wealth verification needed", "Enhanced monitoring recommended"]
+          flags: getRandomFlags(baseSeed + 10, getRandomStatus(baseSeed + 10, { passed: 0.3, failed: 0.1, warning: 0.4, pending: 0.2 }))
         }
       ]
     },
@@ -119,28 +179,34 @@ export const ComplianceChecks = () => {
       checks: [
         {
           name: "CBK Licensing Check",
-          status: "passed",
-          details: "Business activity within permitted scope for current account services",
+          status: getRandomStatus(baseSeed + 11, { passed: 0.9, failed: 0.05, warning: 0.03, pending: 0.02 }),
+          details: "Central Bank of Kenya licensing verification.",
           lastChecked: "2024-01-15 11:25",
-          flags: []
+          flags: getRandomFlags(baseSeed + 11, getRandomStatus(baseSeed + 11, { passed: 0.9, failed: 0.05, warning: 0.03, pending: 0.02 }))
         },
         {
           name: "Industry Risk Assessment",
-          status: "warning",
-          details: "Technology services - Medium risk due to crypto exposure",
+          status: getRandomStatus(baseSeed + 12, { passed: 0.6, failed: 0.1, warning: 0.25, pending: 0.05 }),
+          details: "Industry-specific risk assessment completed.",
           lastChecked: "2024-01-15 11:30",
-          flags: ["Client mentions blockchain consulting", "Potential cryptocurrency transaction risk", "Enhanced monitoring recommended"]
+          flags: getRandomFlags(baseSeed + 12, getRandomStatus(baseSeed + 12, { passed: 0.6, failed: 0.1, warning: 0.25, pending: 0.05 }))
         },
         {
           name: "Geographic Risk Assessment",
-          status: "passed",
-          details: "Operating in Nairobi - low risk jurisdiction within Kenya",
+          status: getRandomStatus(baseSeed + 13, { passed: 0.8, failed: 0.05, warning: 0.1, pending: 0.05 }),
+          details: "Geographic risk assessment for Kenya jurisdiction.",
           lastChecked: "2024-01-15 11:32",
-          flags: []
+          flags: getRandomFlags(baseSeed + 13, getRandomStatus(baseSeed + 13, { passed: 0.8, failed: 0.05, warning: 0.1, pending: 0.05 }))
         }
       ]
     }
   ];
+
+  return complianceData;
+};
+
+export const ComplianceChecks = ({ applicationId = "default" }: ComplianceChecksProps) => {
+  const complianceData = generateComplianceData(applicationId);
 
   const getStatusIcon = (status: string) => {
     switch (status) {

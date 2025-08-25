@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertTriangle, Plus, User, Calendar } from "lucide-react";
+import { AlertTriangle, Plus, User, Calendar, Upload, FileText, Download } from "lucide-react";
 import { useState } from "react";
 
 interface Deviation {
@@ -17,30 +17,162 @@ interface Deviation {
   approvedBy?: string;
   approvalDate?: string;
   justification?: string;
+  documents?: string[];
 }
 
-export const DeviationManagement = () => {
-  const [deviations, setDeviations] = useState<Deviation[]>([
+interface DeviationManagementProps {
+  applicationId?: string;
+  applicationStatus?: "pending" | "review" | "approved" | "rejected" | "flagged";
+}
+
+// Helper function to generate consistent random data based on application ID
+const generateSeededRandom = (seed: string) => {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    const char = seed.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  return Math.abs(hash);
+};
+
+const getRandomStatus = (seed: number, applicationStatus: string) => {
+  const random = (seed * 9301 + 49297) % 233280;
+  const normalized = random / 233280;
+  
+  // For approved applications, deviations should be closed (approved or rejected only)
+  if (applicationStatus === "approved") {
+    if (normalized < 0.8) return "approved";
+    return "rejected";
+  }
+  
+  // For rejected applications, deviations should be mostly rejected or open
+  if (applicationStatus === "rejected") {
+    if (normalized < 0.6) return "rejected";
+    if (normalized < 0.8) return "open";
+    return "under_review";
+  }
+  
+  // For other application statuses
+  if (normalized < 0.3) return "approved";
+  if (normalized < 0.6) return "under_review";
+  if (normalized < 0.8) return "open";
+  return "rejected";
+};
+
+const generateRandomDeviations = (applicationId: string, applicationStatus: string): Deviation[] => {
+  const baseSeed = generateSeededRandom(applicationId);
+  const deviationOptions = [
     {
-      id: "DEV-001",
-      type: "kyc",
-      severity: "medium",
+      type: "kyc" as const,
       description: "Tax returns for last 2 years not available - client provided explanation letter",
-      status: "under_review",
+      justification: "Client is a new business entity, established 18 months ago. Provided interim financial statements and accountant's letter confirming tax compliance.",
+      severity: "medium" as const
+    },
+    {
+      type: "kyc" as const,
+      description: "Address verification incomplete - utility bill address differs from registered address",
+      justification: "Client provided valid explanation for address discrepancy. New premises under renovation, temporary address provided.",
+      severity: "low" as const
+    },
+    {
+      type: "aml" as const,
+      description: "High-value transaction patterns detected requiring enhanced monitoring",
+      justification: "Client operates in import-export business with legitimate high-value transactions. Enhanced due diligence completed.",
+      severity: "medium" as const
+    },
+    {
+      type: "pep" as const,
+      description: "Contact person has previous government employment history",
+      justification: "Former government employee in non-sensitive position. No current political exposure identified.",
+      severity: "low" as const
+    },
+    {
+      type: "regulatory" as const,
+      description: "Industry-specific compliance concerns - technology services with crypto exposure",
+      justification: "Client provides blockchain consulting services. Enhanced monitoring and reporting requirements implemented.",
+      severity: "high" as const
+    },
+    {
+      type: "kyc" as const,
+      description: "Business registration certificate pending renewal",
+      justification: "Renewal application submitted and payment confirmed. Certificate expected within 30 days.",
+      severity: "low" as const
+    }
+  ];
+
+  const random = (baseSeed * 9301 + 49297) % 233280;
+  const normalized = random / 233280;
+  
+  // Generate 0-3 deviations based on application ID
+  const numDeviations = Math.floor(normalized * 4);
+  
+  if (numDeviations === 0) return [];
+
+  const selectedDeviations = [];
+  for (let i = 0; i < numDeviations; i++) {
+    const deviationSeed = baseSeed + i + 1;
+    const deviationRandom = (deviationSeed * 9301 + 49297) % 233280;
+    const deviationNormalized = deviationRandom / 233280;
+    
+    const selectedOption = deviationOptions[Math.floor(deviationNormalized * deviationOptions.length)];
+    const status = getRandomStatus(deviationSeed, applicationStatus);
+    
+    const deviation: Deviation = {
+      id: `DEV-${String(i + 1).padStart(3, '0')}`,
+      type: selectedOption.type,
+      severity: selectedOption.severity,
+      description: selectedOption.description,
+      status,
       raisedBy: "John Mwangi",
       raisedDate: "2024-01-15 11:45",
-      justification: "Client is a new business entity, established 18 months ago. Provided interim financial statements and accountant's letter confirming tax compliance."
-    }
-  ]);
+      justification: selectedOption.justification,
+      ...(status === "approved" && {
+        approvedBy: "Compliance Manager",
+        approvalDate: "2024-01-15 14:30"
+      }),
+      ...(status === "rejected" && {
+        approvedBy: "Compliance Manager",
+        approvalDate: "2024-01-15 14:30"
+      })
+    };
+    
+    selectedDeviations.push(deviation);
+  }
+  
+  return selectedDeviations;
+};
+
+export const DeviationManagement = ({ applicationId = "default", applicationStatus = "pending" }: DeviationManagementProps) => {
+  const [deviations, setDeviations] = useState<Deviation[]>(() => generateRandomDeviations(applicationId, applicationStatus));
 
   const [newDeviation, setNewDeviation] = useState({
     type: "",
     severity: "",
     description: "",
-    justification: ""
+    justification: "",
+    documents: [] as string[]
   });
 
   const [showNewDeviationForm, setShowNewDeviationForm] = useState(false);
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const fileNames = Array.from(files).map(file => file.name);
+      setNewDeviation(prev => ({
+        ...prev,
+        documents: [...prev.documents, ...fileNames]
+      }));
+    }
+  };
+
+  const removeDocument = (index: number) => {
+    setNewDeviation(prev => ({
+      ...prev,
+      documents: prev.documents.filter((_, i) => i !== index)
+    }));
+  };
 
   const handleAddDeviation = () => {
     if (newDeviation.type && newDeviation.severity && newDeviation.description) {
@@ -58,11 +190,12 @@ export const DeviationManagement = () => {
           hour: '2-digit',
           minute: '2-digit'
         }),
-        justification: newDeviation.justification
+        justification: newDeviation.justification,
+        documents: newDeviation.documents
       };
 
       setDeviations([...deviations, deviation]);
-      setNewDeviation({ type: "", severity: "", description: "", justification: "" });
+      setNewDeviation({ type: "", severity: "", description: "", justification: "", documents: [] });
       setShowNewDeviationForm(false);
     }
   };
@@ -153,14 +286,16 @@ export const DeviationManagement = () => {
             <AlertTriangle className="h-5 w-5 text-warning" />
             Compliance Deviations
           </div>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setShowNewDeviationForm(!showNewDeviationForm)}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Deviation
-          </Button>
+          {applicationStatus !== "approved" && applicationStatus !== "rejected" && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowNewDeviationForm(!showNewDeviationForm)}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Deviation
+            </Button>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -216,6 +351,55 @@ export const DeviationManagement = () => {
                 className="mt-2"
               />
             </div>
+            
+            {/* Document Upload Section */}
+            <div className="mb-4">
+              <label className="text-sm font-medium text-muted-foreground">Supporting Documents (Optional)</label>
+              <div className="mt-2 space-y-2">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="file"
+                    multiple
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    id="file-upload"
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  />
+                  <label
+                    htmlFor="file-upload"
+                    className="flex items-center gap-2 px-3 py-2 border border-dashed border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                  >
+                    <Upload className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">Upload documents</span>
+                  </label>
+                </div>
+                
+                {/* Display uploaded files */}
+                {newDeviation.documents.length > 0 && (
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">Uploaded files:</p>
+                    {newDeviation.documents.map((doc, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-muted/20 rounded text-xs">
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-muted-foreground">{doc}</span>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeDocument(index)}
+                          className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                        >
+                          ×
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            
             <div className="flex gap-2">
               <Button onClick={handleAddDeviation}>Add Deviation</Button>
               <Button variant="outline" onClick={() => setShowNewDeviationForm(false)}>Cancel</Button>
@@ -251,6 +435,31 @@ export const DeviationManagement = () => {
                   </div>
                 )}
                 
+                {deviation.documents && deviation.documents.length > 0 && (
+                  <div className="mb-3">
+                    <label className="text-sm font-medium text-muted-foreground">Supporting Documents:</label>
+                    <div className="mt-1 space-y-1">
+                      {deviation.documents.map((doc, index) => (
+                        <div key={index} className="flex items-center gap-2 p-2 bg-muted/20 rounded text-xs">
+                          <FileText className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-muted-foreground">{doc}</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-4 w-4 p-0 ml-auto text-muted-foreground hover:text-foreground"
+                            onClick={() => {
+                              console.log(`Downloading ${doc}`);
+                              // In a real app, this would trigger file download
+                            }}
+                          >
+                            <Download className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
                 <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
                   <div className="flex items-center gap-1">
                     <User className="h-3 w-3" />
@@ -275,7 +484,7 @@ export const DeviationManagement = () => {
                   </div>
                 )}
                 
-                {(deviation.status === "open" || deviation.status === "under_review") && (
+                {(deviation.status === "open" || deviation.status === "under_review") && applicationStatus !== "approved" && applicationStatus !== "rejected" && (
                   <div className="flex gap-2">
                     <Button 
                       size="sm" 

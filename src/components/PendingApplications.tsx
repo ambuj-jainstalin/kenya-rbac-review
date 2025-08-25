@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Clock, AlertTriangle, CheckCircle } from "lucide-react";
+import { Eye, Clock, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { ApplicationDetailModal } from "./ApplicationDetailModal";
 
@@ -10,13 +10,13 @@ interface Application {
   businessName: string;
   registrationNumber: string;
   applicationType: string;
-  status: "pending" | "review" | "approved" | "rejected" | "flagged";
+  status: "pending" | "review" | "flagged";
   submittedDate: string;
   monthlyTurnover: string;
   riskLevel: "low" | "medium" | "high";
 }
 
-export const ApplicationsList = () => {
+export const PendingApplications = () => {
   const [applications] = useState<Application[]>([
     {
       id: "APP-001",
@@ -48,16 +48,6 @@ export const ApplicationsList = () => {
       monthlyTurnover: "KES 1,200,000",
       riskLevel: "medium",
     },
-    {
-      id: "APP-004",
-      businessName: "Eldoret Manufacturing Ltd",
-      registrationNumber: "PVT-202301459",
-      applicationType: "SME Current Account",
-      status: "approved",
-      submittedDate: "2024-01-12",
-      monthlyTurnover: "KES 4,500,000",
-      riskLevel: "low",
-    },
   ]);
 
   const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
@@ -79,10 +69,6 @@ export const ApplicationsList = () => {
         return <Badge variant="secondary" className="bg-info/10 text-info border-info/20">Pending</Badge>;
       case "review":
         return <Badge variant="secondary" className="bg-warning/10 text-warning border-warning/20">In Review</Badge>;
-      case "approved":
-        return <Badge variant="secondary" className="bg-success/10 text-success border-success/20">Approved</Badge>;
-      case "rejected":
-        return <Badge variant="destructive">Rejected</Badge>;
       case "flagged":
         return <Badge variant="secondary" className="bg-destructive/10 text-destructive border-destructive/20">Flagged</Badge>;
       default:
@@ -109,21 +95,28 @@ export const ApplicationsList = () => {
         return <Clock className="h-4 w-4 text-info" />;
       case "flagged":
         return <AlertTriangle className="h-4 w-4 text-destructive" />;
-      case "approved":
-        return <CheckCircle className="h-4 w-4 text-success" />;
       default:
         return <Clock className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
   return (
-    <div>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-3xl font-bold text-foreground mb-2">
+          Pending Applications
+        </h2>
+        <p className="text-muted-foreground">
+          Review and process applications awaiting compliance approval
+        </p>
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            Recent Applications
+            Pending Reviews ({applications.length})
             <Button variant="outline" size="sm">
-              View All
+              Export List
             </Button>
           </CardTitle>
         </CardHeader>

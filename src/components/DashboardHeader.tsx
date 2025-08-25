@@ -15,18 +15,6 @@ export const DashboardHeader = () => {
   return (
     <header className="bg-card border-b border-border px-6 py-4 flex items-center justify-between">
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-secondary rounded-lg flex items-center justify-center">
-            <span className="text-secondary-foreground font-bold text-sm">KB</span>
-          </div>
-          <div>
-            <h1 className="text-lg font-semibold text-foreground">Kenya Banking</h1>
-            <p className="text-xs text-muted-foreground">Compliance Dashboard</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -34,7 +22,9 @@ export const DashboardHeader = () => {
             className="pl-10 w-80"
           />
         </div>
+      </div>
 
+      <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
           <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full h-4 w-4 flex items-center justify-center">

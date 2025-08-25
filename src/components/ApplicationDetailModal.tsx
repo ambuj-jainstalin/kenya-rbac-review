@@ -14,9 +14,10 @@ interface ApplicationDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   applicationId: string;
+  applicationStatus?: "pending" | "review" | "approved" | "rejected" | "flagged";
 }
 
-export const ApplicationDetailModal = ({ isOpen, onClose, applicationId }: ApplicationDetailModalProps) => {
+export const ApplicationDetailModal = ({ isOpen, onClose, applicationId, applicationStatus = "pending" }: ApplicationDetailModalProps) => {
   const [reviewComments, setReviewComments] = useState("");
 
   // Sample application data
@@ -216,30 +217,53 @@ export const ApplicationDetailModal = ({ isOpen, onClose, applicationId }: Appli
             </TabsContent>
 
             <TabsContent value="compliance" className="mt-6">
-              <ComplianceChecks />
+              <ComplianceChecks applicationId={applicationId} />
             </TabsContent>
 
             <TabsContent value="deviations" className="mt-6">
-              <DeviationManagement />
+              <DeviationManagement applicationId={applicationId} applicationStatus={applicationStatus} />
             </TabsContent>
 
             <TabsContent value="review" className="space-y-6 mt-6">
               {/* Review Section */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Compliance Review</CardTitle>
+                  <CardTitle>
+                    {applicationStatus === "approved" ? "Approval Details" : 
+                     applicationStatus === "rejected" ? "Rejection Details" : "Compliance Review"}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Review Comments</label>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      {applicationStatus === "approved" ? "Approval Comments" : 
+                       applicationStatus === "rejected" ? "Rejection Comments" : "Review Comments"}
+                    </label>
                     <Textarea
-                      placeholder="Enter your review comments and compliance notes..."
+                      placeholder={
+                        applicationStatus === "approved" 
+                          ? "Approval comments and compliance notes..." 
+                          : applicationStatus === "rejected"
+                          ? "Rejection reasons and compliance concerns..."
+                          : "Enter your review comments and compliance notes..."
+                      }
                       value={reviewComments}
                       onChange={(e) => setReviewComments(e.target.value)}
                       className="mt-2"
                       rows={4}
+                      readOnly={applicationStatus === "approved" || applicationStatus === "rejected"}
                     />
                   </div>
+                  {applicationStatus === "approved" && (
+                    <div className="text-sm text-muted-foreground">
+                      <p>This application was approved on 2024-01-15 by Compliance Officer</p>
+                    </div>
+                  )}
+                  {applicationStatus === "rejected" && (
+                    <div className="text-sm text-muted-foreground">
+                      <p>This application was rejected on 2024-01-12 by Compliance Officer</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -251,20 +275,24 @@ export const ApplicationDetailModal = ({ isOpen, onClose, applicationId }: Appli
         {/* Action Buttons */}
         <div className="flex justify-end gap-3">
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {applicationStatus === "approved" || applicationStatus === "rejected" ? "Close" : "Cancel"}
           </Button>
-          <Button variant="secondary" onClick={handleFlag} className="bg-warning/10 text-warning border-warning/20 hover:bg-warning/20">
-            <Flag className="h-4 w-4 mr-2" />
-            Flag for Review
-          </Button>
-          <Button variant="destructive" onClick={handleReject}>
-            <XCircle className="h-4 w-4 mr-2" />
-            Reject
-          </Button>
-          <Button onClick={handleApprove} className="bg-success hover:bg-success-hover text-success-foreground">
-            <CheckCircle className="h-4 w-4 mr-2" />
-            Approve
-          </Button>
+          {applicationStatus !== "approved" && applicationStatus !== "rejected" && (
+            <>
+              <Button variant="secondary" onClick={handleFlag} className="bg-warning/10 text-warning border-warning/20 hover:bg-warning/20">
+                <Flag className="h-4 w-4 mr-2" />
+                Flag for Review
+              </Button>
+              <Button variant="destructive" onClick={handleReject}>
+                <XCircle className="h-4 w-4 mr-2" />
+                Reject
+              </Button>
+              <Button onClick={handleApprove} className="bg-success hover:bg-success-hover text-success-foreground">
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Approve
+              </Button>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>
